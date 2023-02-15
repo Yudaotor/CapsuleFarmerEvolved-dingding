@@ -23,7 +23,7 @@ COPY --from=python-deps /.venv /.venv
 ENV PATH="/.venv/bin:$PATH"
 
 # Install application into container
-COPY . .
+COPY ../../111 .
 
 # Run the application
 ENTRYPOINT ["python", "src/main.py"]

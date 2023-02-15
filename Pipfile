@@ -11,6 +11,7 @@ beautifulsoup4 = "*"
 pyyaml = "*"
 rich = "*"
 pyjwt = "*"
+dingding-webhook = "*"
 
 [dev-packages]
 autopep8 = "*"
