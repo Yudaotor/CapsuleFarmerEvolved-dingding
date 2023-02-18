@@ -85,7 +85,7 @@ class FarmThread(Thread):
 
     def __notifyConnectorDrops(self, newDrops: list):
         if newDrops:
-            if self.config.accounts[0] in self.accounts:
+            if self.config.accounts[0] in self.account:
                 title1 = newDrops[0]["dropsetTitle"]
                 title = f"[{self.account}] {title1}"
                 rewardImage = newDrops[0]["inventory"][0]["localizedInventory"]["inventory"]["imageUrl"]
