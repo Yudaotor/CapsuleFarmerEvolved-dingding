@@ -3,6 +3,7 @@ from threading import Thread
 from time import sleep
 from Browser import Browser
 import requests
+import dingding_webhook.webhook as dingding_webhook
 
 from SharedData import SharedData
 
@@ -34,7 +35,7 @@ class FarmThread(Thread):
         Start watching every live match
         """
         try:
-            self.stats.updateStatus(self.account, "[yellow]LOGIN")
+            self.stats.updateStatus(self.account, "[green]LOGIN")
             if self.browser.login(self.config.getAccount(self.account)["username"], self.config.getAccount(self.account)["password"], self.locks["refreshLock"]):
                 self.stats.updateStatus(self.account, "[green]LIVE")
                 self.stats.resetLoginFailed(self.account)
@@ -46,10 +47,10 @@ class FarmThread(Thread):
                         liveMatchesStatus = []
                         for m in self.sharedData.getLiveMatches().values():
                             if m.league in watchFailed:
-                                self.stats.updateStatus(self.account, "[red]RIOT SERVERS OVERLOADED - PLEASE WAIT")
+                                leagueName = f"[red]{m.league}[/]"
                             else:
-                                self.stats.updateStatus(self.account, "[green]LIVE")
-                            liveMatchesStatus.append(m.league)
+                                leagueName = str(m.league)
+                            liveMatchesStatus.append(leagueName)
                         self.log.debug(f"Live matches: {', '.join(liveMatchesStatus)}")
                         liveMatchesMsg = f"{', '.join(liveMatchesStatus)}"
                         newDrops = self.browser.checkNewDrops(self.stats.getLastDropCheck(self.account))
@@ -84,28 +85,17 @@ class FarmThread(Thread):
 
     def __notifyConnectorDrops(self, newDrops: list):
         if newDrops:
-            if "https://discord.com/api/webhooks" in self.config.connectorDrops:
-                for x in range(len(newDrops)):
-                    title = newDrops[x]["dropsetTitle"]
-                    thumbnail = newDrops[x]["dropsetImages"]["cardUrl"]
-                    reward = newDrops[x]["inventory"][0]["localizedInventory"]["title"]["en_US"]
-                    rewardImage = newDrops[x]["inventory"][0]["localizedInventory"]["inventory"]["imageUrl"]
-
-                    embed = {
-                        "title": f"[{self.account}] {title}",
-                        "description": f"We claimed an **{reward}** from <https://lolesports.com/rewards>",
-                        "image" : {"url": f"{thumbnail}"},
-                        "thumbnail": {"url": f"{rewardImage}"},
-                        "color": 6676471,
-                    }
-
-                    params = {
-                        "username" : "CapsuleFarmerEvolved",
-                        "embeds": [embed]
-                    }
-                    requests.post(self.config.connectorDrops, headers={"Content-type":"application/json"}, json=params)
-            else:
-                requests.post(self.config.connectorDrops, json=newDrops)
+            if self.config.accounts[0] in self.accounts:
+                title1 = newDrops[0]["dropsetTitle"]
+                title = f"[{self.account}] {title1}"
+                rewardImage = newDrops[0]["inventory"][0]["localizedInventory"]["inventory"]["imageUrl"]
+                msgUrl = "https://lolesports.com/rewards"
+                post_url = self.config.connectorDrops
+                leagueId = getLeagueFromID(newDrops[0]["leagueID"])
+                text = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "Received a Capsule From " + leagueId;
+                dingding_webhook.send_link(post_url, title, text, rewardImage, msgUrl)
+            
+            
 
 def getLeagueFromID(leagueId):
     allLeagues = getLeagues()
