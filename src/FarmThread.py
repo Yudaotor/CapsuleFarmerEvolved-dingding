@@ -84,16 +84,20 @@ class FarmThread(Thread):
         self.browser.stopMaintaininingSession()
 
     def __notifyConnectorDrops(self, newDrops: list):
-        if newDrops:
-            if self.config.accounts[0] in self.account:
-                title1 = newDrops[0]["dropsetTitle"]
-                title = f"[{self.account}] {title1}"
-                rewardImage = newDrops[0]["inventory"][0]["localizedInventory"]["inventory"]["imageUrl"]
-                msgUrl = "https://lolesports.com/rewards"
-                post_url = self.config.connectorDrops
-                leagueId = getLeagueFromID(newDrops[0]["leagueID"])
-                text = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "Received a Capsule From " + leagueId;
-                dingding_webhook.send_link(post_url, title, text, rewardImage, msgUrl)
+        try:
+            if newDrops:
+                acc = list(self.config.accounts.keys())[0]
+                if acc in self.account:
+                    title1 = newDrops[0]["dropsetTitle"]
+                    title = f"[{self.account}] {title1}"
+                    rewardImage = newDrops[0]["inventory"][0]["localizedInventory"]["inventory"]["imageUrl"]
+                    msgUrl = "https://lolesports.com/rewards"
+                    post_url = self.config.connectorDrops
+                    leagueId = getLeagueFromID(newDrops[0]["leagueID"])
+                    text = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "Received a Capsule From " + leagueId;
+                    dingding_webhook.send_link(post_url, title, text, rewardImage, msgUrl)
+        except Exception:
+            self.log.exception("Wrong!!!!!!!!")
             
             
 
