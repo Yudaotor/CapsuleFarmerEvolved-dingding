@@ -13,6 +13,7 @@ from Exceptions.StatusCodeAssertException import StatusCodeAssertException
 import pickle
 from pathlib import Path
 import jwt
+import sys
 
 from SharedData import SharedData
 
@@ -154,7 +155,7 @@ class Browser:
                 watchFailed.append(self.sharedData.getLiveMatches()[tid].league)
         return watchFailed
     
-    def checkNewDrops(self, lastCheckTime):
+    def checkNewDrops(self, lastCheckTime = 0):
         try:
             headers = {"Origin": "https://lolesports.com",
 

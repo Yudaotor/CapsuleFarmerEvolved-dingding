@@ -41,6 +41,8 @@ class FarmThread(Thread):
                                   self.config.getAccount(self.account)["password"], self.locks["refreshLock"]):
                 self.stats.updateStatus(self.account, "[green]LIVE")
                 self.stats.resetLoginFailed(self.account)
+                if self.config.showHistoricalDrops:
+                    self.stats.setTotalDrops(self.account, len(self.browser.checkNewDrops()))
                 while True:
                     self.browser.maintainSession()
                     watchFailed = self.browser.sendWatchToLive()

@@ -37,8 +37,9 @@ class Config:
                     raise InvalidCredentialsException                    
                 self.debug = config.get("debug", False)
                 self.connectorDrops = config.get("connectorDropsUrl", "")
+                self.showHistoricalDrops = config.get("showHistoricalDrops", False)
         except FileNotFoundError as ex:
-            print(f"[red]CRITICAL ERROR: The configuration file cannot be found at {configPath}\nHave you extacted the ZIP archive and edited the configuration file?")
+            print(f"[red]CRITICAL ERROR: 配置文件在 {configPath}找不到!\nHave you extacted the ZIP archive and edited the configuration file?")
             print("Press any key to exit...")
             input()
             raise ex
@@ -48,7 +49,7 @@ class Config:
             input()
             raise ex
         except InvalidCredentialsException as ex:
-            print(f"[red]CRITICAL ERROR: There are only default credentials in the configuration file.\nYou need to add you Riot account login to config.yaml to receive drops.")
+            print(f"[red]CRITICAL ERROR: 配置文件还为初始值,请进行配置.")
             print("Press any key to exit...")
             input()
             raise ex

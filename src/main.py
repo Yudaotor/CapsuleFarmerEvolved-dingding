@@ -34,6 +34,7 @@ def init() -> tuple[logging.Logger, Config]:
     print("*  如出现登陆失败的情况,1.检查账密是否正确 2.删除sessions文件夹后重试 3.网络问题(梯子问题) *")
     print("*       关于如何使用钉钉提醒功能请查看以下链接(可能有bug?)      *")
     print("* https://blog.csdn.net/qq_33884853/article/details/129104726?spm=1001.2014.3001.5502 *")
+    print("*  增加统计历史掉落数功能,有需要可在config.yaml中加入showHistoricalDrops: True  *")
     print("************************************************************************")
     print()
 
