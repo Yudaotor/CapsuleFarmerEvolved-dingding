@@ -7,6 +7,7 @@ import dingding_webhook.webhook as dingding_webhook
 
 from SharedData import SharedData
 
+
 class FarmThread(Thread):
     """
     A thread that creates a capsule farm for a given account
@@ -36,7 +37,8 @@ class FarmThread(Thread):
         """
         try:
             self.stats.updateStatus(self.account, "[green]LOGIN")
-            if self.browser.login(self.config.getAccount(self.account)["username"], self.config.getAccount(self.account)["password"], self.locks["refreshLock"]):
+            if self.browser.login(self.config.getAccount(self.account)["username"],
+                                  self.config.getAccount(self.account)["password"], self.locks["refreshLock"]):
                 self.stats.updateStatus(self.account, "[green]LIVE")
                 self.stats.resetLoginFailed(self.account)
                 while True:
@@ -59,7 +61,8 @@ class FarmThread(Thread):
                         liveMatchesMsg = self.sharedData.getTimeUntilNextMatch()
                     try:
                         if newDrops and getLeagueFromID(newDrops[-1]["leagueID"]):
-                            self.stats.update(self.account, len(newDrops), liveMatchesMsg, getLeagueFromID(newDrops[-1]["leagueID"]))
+                            self.stats.update(self.account, len(newDrops), liveMatchesMsg,
+                                              getLeagueFromID(newDrops[-1]["leagueID"]))
                         else:
                             self.stats.update(self.account, 0, liveMatchesMsg)
                     except (IndexError, KeyError):
@@ -86,20 +89,47 @@ class FarmThread(Thread):
     def __notifyConnectorDrops(self, newDrops: list):
         try:
             if newDrops:
-                acc = list(self.config.accounts.keys())[0]
-                if acc in self.account:
-                    title1 = newDrops[0]["dropsetTitle"]
-                    title = f"[{self.account}] {title1}"
-                    rewardImage = newDrops[0]["inventory"][0]["localizedInventory"]["inventory"]["imageUrl"]
-                    msgUrl = "https://lolesports.com/rewards"
-                    post_url = self.config.connectorDrops
-                    leagueId = getLeagueFromID(newDrops[0]["leagueID"])
-                    text = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "Received a Capsule From " + leagueId;
-                    dingding_webhook.send_link(post_url, title, text, rewardImage, msgUrl)
+                if "https://oapi.dingtalk.com" in self.config.connectorDrops:
+                    acc = list(self.config.accounts.keys())[0]
+                    if acc in self.account:
+                        for x in range(len(newDrops)):
+                            title1 = newDrops[x]["dropsetTitle"]
+                            title = f"[{self.account}] {title1}"
+                            rewardImage = newDrops[x]["inventory"][0]["localizedInventory"]["inventory"]["imageUrl"]
+                            msgUrl = "https://lolesports.com/rewards"
+                            post_url = self.config.connectorDrops
+                            leagueId = getLeagueFromID(newDrops[x]["leagueID"])
+                            text = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "Received a Capsule From " + leagueId
+                            dingding_webhook.send_link(post_url, title, text, rewardImage, msgUrl)
+                elif "https://discord.com/api/webhooks" in self.config.connectorDrops:
+                    for x in range(len(newDrops)):
+                        title = newDrops[x]["dropsetTitle"]
+                        thumbnail = newDrops[x]["dropsetImages"]["cardUrl"]
+                        reward = newDrops[x]["inventory"][0]["localizedInventory"]["title"]["en_US"]
+                        rewardImage = newDrops[x]["inventory"][0]["localizedInventory"]["inventory"]["imageUrl"]
+
+                        embed = {
+                            "title": f"[{self.account}] {title}",
+                            "description": f"We claimed an **{reward}** from <https://lolesports.com/rewards>",
+                            "image": {"url": f"{thumbnail}"},
+                            "thumbnail": {"url": f"{rewardImage}"},
+                            "color": 6676471,
+                        }
+
+                        params = {
+                            "username": "CapsuleFarmerEvolved",
+                            "embeds": [embed]
+                        }
+                        requests.post(self.config.connectorDrops, headers={"Content-type": "application/json"},
+                                      json=params)
+                else:
+                    requests.post(self.config.connectorDrops, json=newDrops)
         except Exception:
+            self.log.exception("*****************************************************************")
             self.log.exception("Wrong!!!!!!!!")
-            
-            
+            self.log.exception("*****************************************************************")
+
+
 
 def getLeagueFromID(leagueId):
     allLeagues = getLeagues()
@@ -107,6 +137,8 @@ def getLeagueFromID(leagueId):
         if leagueId in league["id"]:
             return league["name"]
     return ""
+
+
 def getLeagues():
     headers = {"Origin": "https://lolesports.com", "Referrer": "https://lolesports.com",
                "x-api-key": "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"}

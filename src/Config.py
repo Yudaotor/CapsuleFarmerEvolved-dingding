@@ -43,7 +43,7 @@ class Config:
             input()
             raise ex
         except (ParserError, KeyError) as ex:
-            print(f"[red]CRITICAL ERROR: The configuration file does not have a valid format.\nPlease, check it for extra spaces and other characters.\nAlternatively, use confighelper.html to generate a new one.")
+            print(f"[red]CRITICAL ERROR: 配置文件格式錯誤!!")
             print("Press any key to exit...")
             input()
             raise ex
@@ -59,7 +59,7 @@ class Config:
             if remoteBestStreamsFile.status_code == 200:
                 self.bestStreams = remoteBestStreamsFile.text.split()
         except Exception as ex:
-            print(f"[red]CRITICAL ERROR: Beststreams couldn't be loaded. Are you connected to the internet?")
+            print(f"[red]CRITICAL ERROR: 網絡問題, 去挂梯!!")
             print("Press any key to exit...")
             input()
             raise ex
