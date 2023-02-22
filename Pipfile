@@ -12,6 +12,9 @@ pyyaml = "*"
 rich = "*"
 pyjwt = "*"
 dingding-webhook = "*"
+cryptography = "*"
+pyopenssl = "*"
+certifi = "*"
 
 [dev-packages]
 autopep8 = "*"
