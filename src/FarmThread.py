@@ -2,11 +2,12 @@ from datetime import datetime
 from threading import Thread
 from time import sleep
 from Browser import Browser
+from Config import Config
+from Exceptions.InvalidIMAPCredentialsException import InvalidIMAPCredentialsException
+from Exceptions.Fail2FAException import Fail2FAException
 import requests
-import dingding_webhook.webhook as dingding_webhook
 
 from SharedData import SharedData
-
 
 class FarmThread(Thread):
     """
@@ -27,7 +28,7 @@ class FarmThread(Thread):
         self.config = config
         self.account = account
         self.stats = stats
-        self.browser = Browser(self.log, self.config, self.account, sharedData)
+        self.browser = Browser(self.log, self.stats, self.config, self.account, sharedData)
         self.locks = locks
         self.sharedData = sharedData
 
@@ -36,13 +37,13 @@ class FarmThread(Thread):
         Start watching every live match
         """
         try:
-            self.stats.updateStatus(self.account, "[green]LOGIN")
-            if self.browser.login(self.config.getAccount(self.account)["username"],
-                                  self.config.getAccount(self.account)["password"], self.locks["refreshLock"]):
-                self.stats.updateStatus(self.account, "[green]LIVE")
+            self.stats.updateStatus(self.account, "[yellow]LOGIN")
+
+            if self.browser.login(self.config.getAccount(self.account)["username"], self.config.getAccount(self.account)["password"], self.config.getAccount(self.account)["imapUsername"], self.config.getAccount(self.account)["imapPassword"], self.config.getAccount(self.account)["imapServer"], self.locks["refreshLock"]):
                 self.stats.resetLoginFailed(self.account)
-                if self.config.showHistoricalDrops:
-                    self.stats.setTotalDrops(self.account, len(self.browser.checkNewDrops()))
+                self.stats.updateStatus(self.account, "[green]LIVE")
+                _, totalDrops = self.browser.checkNewDrops(0)
+                self.stats.setTotalDrops(self.account, totalDrops)
                 while True:
                     self.browser.maintainSession()
                     watchFailed = self.browser.sendWatchToLive()
@@ -51,20 +52,20 @@ class FarmThread(Thread):
                         liveMatchesStatus = []
                         for m in self.sharedData.getLiveMatches().values():
                             if m.league in watchFailed:
-                                leagueName = f"[red]{m.league}[/]"
+                                self.stats.updateStatus(self.account, "[red]RIOT SERVERS OVERLOADED - PLEASE WAIT")
                             else:
-                                leagueName = str(m.league)
-                            liveMatchesStatus.append(leagueName)
+                                self.stats.updateStatus(self.account, "[green]LIVE")
+                            liveMatchesStatus.append(m.league)
                         self.log.debug(f"Live matches: {', '.join(liveMatchesStatus)}")
                         liveMatchesMsg = f"{', '.join(liveMatchesStatus)}"
-                        newDrops = self.browser.checkNewDrops(self.stats.getLastDropCheck(self.account))
+                        newDrops, totalDrops = self.browser.checkNewDrops(self.stats.getLastDropCheck(self.account))
+                        self.stats.setTotalDrops(self.account, totalDrops)
                         self.stats.updateLastDropCheck(self.account, int(datetime.now().timestamp() * 1e3))
                     else:
                         liveMatchesMsg = self.sharedData.getTimeUntilNextMatch()
                     try:
                         if newDrops and getLeagueFromID(newDrops[-1]["leagueID"]):
-                            self.stats.update(self.account, len(newDrops), liveMatchesMsg,
-                                              getLeagueFromID(newDrops[-1]["leagueID"]))
+                            self.stats.update(self.account, len(newDrops), liveMatchesMsg, getLeagueFromID(newDrops[-1]["leagueID"]))
                         else:
                             self.stats.update(self.account, 0, liveMatchesMsg)
                     except (IndexError, KeyError):
@@ -79,6 +80,10 @@ class FarmThread(Thread):
                     self.stats.updateStatus(self.account, "[red]LOGIN FAILED - WILL RETRY SOON")
                 else:
                     self.stats.updateStatus(self.account, "[red]LOGIN FAILED")
+        except InvalidIMAPCredentialsException:
+            self.log.error(f"IMAP login failed for {self.account}")
+            self.stats.updateStatus(self.account, "[red]IMAP LOGIN FAILED")
+            self.stats.updateThreadStatus(self.account)
         except Exception:
             self.log.exception(f"Error in {self.account}. The program will try to recover.")
 
@@ -131,19 +136,15 @@ class FarmThread(Thread):
             self.log.exception("Wrong!!!!!!!!")
             self.log.exception("*****************************************************************")
 
-
-
 def getLeagueFromID(leagueId):
     allLeagues = getLeagues()
     for league in allLeagues:
         if leagueId in league["id"]:
             return league["name"]
     return ""
-
-
 def getLeagues():
     headers = {"Origin": "https://lolesports.com", "Referrer": "https://lolesports.com",
-               "x-api-key": "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"}
+               "x-api-key": Config.RIOT_API_KEY}
     res = requests.get(
         "https://esports-api.lolesports.com/persisted/gw/getLeagues?hl=en-GB", headers=headers)
     leagues = res.json()["data"].get("leagues", [])

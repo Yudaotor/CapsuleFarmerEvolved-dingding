@@ -15,6 +15,7 @@ dingding-webhook = "*"
 cryptography = "*"
 pyopenssl = "*"
 certifi = "*"
+imaplib2 = "*"
 
 [dev-packages]
 autopep8 = "*"

@@ -4,6 +4,7 @@ from time import sleep
 import cloudscraper
 
 from AssertCondition import AssertCondition
+from Config import Config
 from Exceptions.StatusCodeAssertException import StatusCodeAssertException
 from Match import Match
 from SharedData import SharedData
@@ -44,8 +45,8 @@ class DataProviderThread(Thread):
         """
         Retrieve data about currently live matches and store them.
         """
-        headers = {"Origin": "https://lolesports.com",
-                   "x-api-key": "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"}
+        headers = {"Origin": "https://lolesports.com", "Referrer": "https://lolesports.com",
+                   "x-api-key": Config.RIOT_API_KEY}
         res = self.client.get(
             "https://esports-api.lolesports.com/persisted/gw/getLive?hl=en-GB", headers=headers)
         AssertCondition.statusCodeMatches(200, res)
@@ -77,8 +78,8 @@ class DataProviderThread(Thread):
         """
         Retrieve data about currently live matches and store them.
         """
-        headers = {"Origin": "https://lolesports.com",
-                   "x-api-key": "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"}
+        headers = {"Origin": "https://lolesports.com", "Referrer": "https://lolesports.com",
+                   "x-api-key": Config.RIOT_API_KEY}
         try:
             res = self.client.get(
                 "https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-GB", headers=headers)
@@ -111,6 +112,7 @@ class DataProviderThread(Thread):
     def _isStartTimeLater(self, time: str) -> bool:
         """
         Checks if an events starttime is greater than the current time
+
         :param time: string
         :return: bool
         """
@@ -123,6 +125,7 @@ class DataProviderThread(Thread):
     def _calculateTimeDifference(self, time: str) -> timedelta:
         """
         Calculates the time difference between the current time and a starttime
+
         :param time: string
         :return: timedelta, timedelta object containing time difference
         """
@@ -137,9 +140,11 @@ class DataProviderThread(Thread):
     def _getSystemTime(self) -> datetime:
         """
         Gets the systems current time
+
         :return: datetime, systems current time as datetime
         """
         datetimeFormat = '%Y-%m-%dT%H:%M:%SZ'
         systemTimeStr = datetime.now().strftime(datetimeFormat)
         systemTimeDT = datetime.strptime(systemTimeStr, datetimeFormat)
         return systemTimeDT
+        
