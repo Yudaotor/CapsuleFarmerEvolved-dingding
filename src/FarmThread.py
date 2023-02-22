@@ -6,6 +6,7 @@ from Config import Config
 from Exceptions.InvalidIMAPCredentialsException import InvalidIMAPCredentialsException
 from Exceptions.Fail2FAException import Fail2FAException
 import requests
+import dingding_webhook.webhook as dingding_webhook
 
 from SharedData import SharedData
 
