@@ -17,7 +17,7 @@ from SharedData import SharedData
 from Stats import Stats
 from VersionManager import VersionManager
 
-CURRENT_VERSION = 1.41
+CURRENT_VERSION = 1.42
 
 def init() -> tuple[logging.Logger, Config]:
     parser = argparse.ArgumentParser(description='Farm Esports Capsules by watching all matches on lolesports.com.')
@@ -26,14 +26,12 @@ def init() -> tuple[logging.Logger, Config]:
     args = parser.parse_args()
 
     print("**********************************************************************************************")
-    print(f"*                    Thank you for using Capsule Farmer Evolved v{str(CURRENT_VERSION)}!             *")
-    print("*                             如果不能正常使用的话,本软件需要梯子                      *")
-    print("*                       If you need help with the app, join our Discord         *")
-    print("*                              https://discord.gg/ebm5MJNvHU                    *")
-    print("*  如出现登陆失败的情况,1.检查账密是否正确 2.删除sessions文件夹后重试 3.网络问题(梯子问题) *")
-    print("*                      关于如何使用钉钉提醒功能请查看以下链接                   *")
+    print(f"*                         Thank you for using Capsule Farmer Evolved v{str(CURRENT_VERSION)}!                  *")
+    print("*                                如果不能正常使用的话,本软件需要梯子                         *")
+    print("*   如出现登陆失败的情况,1.检查账密是否正确 2.删除sessions文件夹后重试 3.网络问题(梯子问题)  *")
+    print("*                         关于如何使用钉钉提醒(饭碗警告软件)功能请查看以下链接                      *")
     print("*     https://blog.csdn.net/qq_33884853/article/details/129104726?spm=1001.2014.3001.5502    *")
-    print(f"*                            Start Time: [green]{strftime('%b %d, %H:%M', localtime())}[/]                    *")
+    print(f"*                                      Start Time: [green]{strftime('%b %d, %H:%M', localtime())}[/]                              *")
     print("**********************************************************************************************")
     print()
 

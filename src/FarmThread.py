@@ -99,7 +99,7 @@ class FarmThread(Thread):
             if newDrops:
                 if "https://oapi.dingtalk.com" in self.config.connectorDrops:
                     acc = list(self.config.accounts.keys())[0]
-                    if acc in self.account:
+                    if str(acc) in self.account:
                         for x in range(len(newDrops)):
                             title1 = newDrops[x]["dropsetTitle"]
                             title = f"[{self.account}] {title1}"
@@ -130,6 +130,20 @@ class FarmThread(Thread):
                         }
                         requests.post(self.config.connectorDrops, headers={"Content-type": "application/json"},
                                       json=params)
+                elif "https://fwalert.com" in self.config.connectorDrops:
+                    acc = list(self.config.accounts.keys())[0]
+                    if str(acc) in self.account:
+                        for x in range(len(newDrops)):
+                            title1 = newDrops[x]["dropsetTitle"]
+                            title = f"[{self.account}] {title1}"
+                            leagueId = getLeagueFromID(newDrops[x]["leagueID"])
+                            text = title + " " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " Received a Capsule From " + leagueId
+                            params = {
+                                "text": f"{text}",
+                            }
+                            requests.post(self.config.connectorDrops,
+                                          headers={"Content-type": "application/json"},
+                                          json=params)
                 else:
                     requests.post(self.config.connectorDrops, json=newDrops)
         except Exception:
