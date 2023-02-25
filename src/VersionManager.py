@@ -4,7 +4,7 @@ class VersionManager:
 
     @staticmethod
     def getLatestTag():
-        latestTagResponse = req.get("https://api.github.com/repos/LeagueOfPoro/CapsuleFarmerEvolved/releases/latest")
+        latestTagResponse = req.get("https://github.com/Yudaotor/CapsuleFarmerEvolved-dingding/releases/latest")
         if 'application/json' in latestTagResponse.headers.get('Content-Type', ''):
             latestTagJson = latestTagResponse.json()
             if "tag_name" in latestTagJson:

@@ -25,14 +25,14 @@ class GuiThread(Thread):
     
     def generateTable(self):
         table = Table()
-        table.add_column("Account")
-        table.add_column("Status")
-        table.add_column("Live matches")
-        table.add_column("Heartbeat")
-        table.add_column("Last drop")
-        table.add_column("Session Drops")
+        table.add_column("账户")
+        table.add_column("状态")
+        table.add_column("观看赛区")
+        table.add_column("心跳")
+        table.add_column("上次掉落")
+        table.add_column("本次运行掉落")
         if self.config.showHistoricalDrops:
-            table.add_column("Lifetime Drops")
+            table.add_column("生涯总掉落")
 
         for acc in self.stats.accountData:
             status = self.stats.accountData[acc]["status"]

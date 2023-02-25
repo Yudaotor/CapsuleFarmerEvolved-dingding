@@ -9,12 +9,12 @@ class Stats:
             "lastCheck": "",
             "totalDrops": 0,
             "sessionDrops": 0,
-            "lastDrop": "N/A",
+            "lastDrop": "本次启动还没有掉落哦",
             "liveMatches": "",
-            "status": "[yellow]WAIT",
+            "status": "[yellow]等待",
             "failedLoginCounter": 0,
             "lastDropCheck": int(datetime.now().timestamp()*1e3),
-            "valid" : True
+            "valid": True
         }
 
     def update(self, accountName: str, newDrops: int = 0, liveMatches: str = "", lastDropleague: str = None):

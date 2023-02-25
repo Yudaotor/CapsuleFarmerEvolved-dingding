@@ -6,7 +6,6 @@ from Config import Config
 from Exceptions.InvalidIMAPCredentialsException import InvalidIMAPCredentialsException
 from Exceptions.Fail2FAException import Fail2FAException
 import requests
-import dingding_webhook.webhook as dingding_webhook
 
 from SharedData import SharedData
 
@@ -38,7 +37,7 @@ class FarmThread(Thread):
         Start watching every live match
         """
         try:
-            self.stats.updateStatus(self.account, "[yellow]LOGIN")
+            self.stats.updateStatus(self.account, "[yellow]登陆中")
 
             if self.browser.login(self.config.getAccount(self.account)["username"], self.config.getAccount(self.account)["password"], self.config.getAccount(self.account)["imapUsername"], self.config.getAccount(self.account)["imapPassword"], self.config.getAccount(self.account)["imapServer"], self.locks["refreshLock"]):
                 self.stats.resetLoginFailed(self.account)
@@ -53,7 +52,7 @@ class FarmThread(Thread):
                         liveMatchesStatus = []
                         for m in self.sharedData.getLiveMatches().values():
                             if m.league in watchFailed:
-                                self.stats.updateStatus(self.account, "[red]RIOT SERVERS OVERLOADED - PLEASE WAIT")
+                                self.stats.updateStatus(self.account, "[red]拳头服务器过载-请等待")
                             else:
                                 self.stats.updateStatus(self.account, "[green]LIVE")
                             liveMatchesStatus.append(m.league)
@@ -78,9 +77,9 @@ class FarmThread(Thread):
                 self.log.error(f"Login for {self.account} FAILED!")
                 self.stats.addLoginFailed(self.account)
                 if self.stats.getFailedLogins(self.account) < 3:
-                    self.stats.updateStatus(self.account, "[red]LOGIN FAILED - WILL RETRY SOON")
+                    self.stats.updateStatus(self.account, "[red]登陆失败-将很快重试")
                 else:
-                    self.stats.updateStatus(self.account, "[red]LOGIN FAILED")
+                    self.stats.updateStatus(self.account, "[red]登陆失败")
         except InvalidIMAPCredentialsException:
             self.log.error(f"IMAP login failed for {self.account}")
             self.stats.updateStatus(self.account, "[red]IMAP LOGIN FAILED")
@@ -102,13 +101,17 @@ class FarmThread(Thread):
                     if str(acc) in self.account:
                         for x in range(len(newDrops)):
                             title1 = newDrops[x]["dropsetTitle"]
-                            title = f"[{self.account}] {title1}"
-                            rewardImage = newDrops[x]["inventory"][0]["localizedInventory"]["inventory"]["imageUrl"]
-                            msgUrl = "https://lolesports.com/rewards"
-                            post_url = self.config.connectorDrops
                             leagueId = getLeagueFromID(newDrops[x]["leagueID"])
-                            text = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "Received a Capsule From " + leagueId
-                            dingding_webhook.send_link(post_url, title, text, rewardImage, msgUrl)
+                            data = {
+                                "msgtype": "link",
+                                "link": {
+                                    "text": datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "Received a Capsule From " + leagueId,
+                                    "title": f"[{self.account}] {title1}",
+                                    "picUrl": newDrops[x]["inventory"][0]["localizedInventory"]["inventory"]["imageUrl"],
+                                    "messageUrl": "https://lolesports.com/rewards"
+                                }
+                            }
+                            r = requests.post(self.config.connectorDrops, json=data)
                 elif "https://discord.com/api/webhooks" in self.config.connectorDrops:
                     for x in range(len(newDrops)):
                         title = newDrops[x]["dropsetTitle"]
@@ -151,12 +154,15 @@ class FarmThread(Thread):
             self.log.exception("Wrong!!!!!!!!")
             self.log.exception("*****************************************************************")
 
+
 def getLeagueFromID(leagueId):
     allLeagues = getLeagues()
     for league in allLeagues:
         if leagueId in league["id"]:
             return league["name"]
     return ""
+
+
 def getLeagues():
     headers = {"Origin": "https://lolesports.com", "Referrer": "https://lolesports.com",
                "x-api-key": Config.RIOT_API_KEY}

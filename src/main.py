@@ -27,11 +27,11 @@ def init() -> tuple[logging.Logger, Config]:
 
     print("**********************************************************************************************")
     print(f"*                         Thank you for using Capsule Farmer Evolved v{str(CURRENT_VERSION)}!                  *")
-    print("*                                如果不能正常使用的话,本软件需要梯子                         *")
+    print("*                        如果不能正常使用的话,本软件需要梯子 (注意不是加速器)                *")
     print("*   如出现登陆失败的情况,1.检查账密是否正确 2.删除sessions文件夹后重试 3.网络问题(梯子问题)  *")
-    print("*                         关于如何使用钉钉提醒(饭碗警告软件)功能请查看以下链接                      *")
+    print("*                     关于如何使用钉钉提醒(饭碗警告软件)功能请查看以下链接                   *")
     print("*     https://blog.csdn.net/qq_33884853/article/details/129104726?spm=1001.2014.3001.5502    *")
-    print(f"*                                      Start Time: [green]{strftime('%b %d, %H:%M', localtime())}[/]                              *")
+    print(f"*                                     Start Time: [green]{strftime('%b %d, %H:%M', localtime())}[/]                              *")
     print("**********************************************************************************************")
     print()
 
@@ -40,8 +40,8 @@ def init() -> tuple[logging.Logger, Config]:
     config = Config(args.configPath)
     log = Logger.createLogger(config.debug, CURRENT_VERSION)
     if not VersionManager.isLatestVersion(CURRENT_VERSION):
-        log.warning("!!! NEW VERSION AVAILABLE !!! Download it from: https://github.com/LeagueOfPoro/CapsuleFarmerEvolved/releases/latest")
-        print("[bold red]!!! NEW VERSION AVAILABLE !!!\nDownload it from: https://github.com/LeagueOfPoro/CapsuleFarmerEvolved/releases/latest\n")
+        log.warning("!!! 新版本可用 !!! 从github这下载: https://github.com/Yudaotor/CapsuleFarmerEvolved-dingding/releases/latest")
+        print("[bold red]!!! 新版本可用 !!!\n从github这下载: https://github.com/Yudaotor/CapsuleFarmerEvolved-dingding/releases/latest\n")
 
     return log, config
 
@@ -87,7 +87,7 @@ def main(log: logging.Logger, config: Config):
                 toDelete.append(account)
                 log.warning(f"Thread {account} has finished.")
                 restarter.setRestartDelay(account)
-                stats.updateStatus(account, f"[red]ERROR - restart at {restarter.getNextStart(account).strftime('%H:%M:%S')}, failed logins: {stats.getFailedLogins(account)}")
+                stats.updateStatus(account, f"[red]错误:将在 {restarter.getNextStart(account).strftime('%H:%M:%S')}之后重启, 登陆失败次数: {stats.getFailedLogins(account)}")
                 log.warning(f"Thread {account} has finished and will restart at {restarter.getNextStart(account).strftime('%H:%M:%S')}. Number of consecutively failed logins: {stats.getFailedLogins(account)}")
                 
         for account in toDelete:

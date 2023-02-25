@@ -11,7 +11,6 @@ class Config:
     A class that loads and stores the configuration
     """
 
-    REMOTE_BEST_STREAMS_URL = "https://raw.githubusercontent.com/LeagueOfPoro/CapsuleFarmerEvolved/master/config/bestStreams.txt"
     RIOT_API_KEY = "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"
 
     def __init__(self, configPath: str) -> None:
@@ -47,7 +46,7 @@ class Config:
                 self.connectorDrops = config.get("connectorDropsUrl", "")
                 self.showHistoricalDrops = config.get("showHistoricalDrops", True)
         except FileNotFoundError as ex:
-            print(f"[red]CRITICAL ERROR: 配置文件在這個 {configPath}找不到\n")
+            print(f"[red]CRITICAL ERROR: 配置文件 {configPath}找不到\n")
             print("Press any key to exit...")
             input()
             raise ex
@@ -62,9 +61,7 @@ class Config:
             input()
             raise ex
         try:
-            remoteBestStreamsFile = requests.get(self.REMOTE_BEST_STREAMS_URL)
-            if remoteBestStreamsFile.status_code == 200:
-                self.bestStreams = remoteBestStreamsFile.text.split()
+            self.bestStreams = ['riotgames', 'lckcl', 'lpl', 'lck', 'lec', 'lcs', 'lco', 'cblol', 'lla', 'riotgamesjp', 'riotgamesturkish', 'lolpacific', 'EUMasters']
         except Exception as ex:
             print(f"[red]CRITICAL ERROR: 去挂梯,如果已經挂了那就是挂的姿勢不對或者梯子不行")
             print("Press any key to exit...")
