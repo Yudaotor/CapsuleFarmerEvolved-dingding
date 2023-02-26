@@ -17,7 +17,7 @@ from SharedData import SharedData
 from Stats import Stats
 from VersionManager import VersionManager
 
-CURRENT_VERSION = 1.42
+CURRENT_VERSION = 1.43
 
 def init() -> tuple[logging.Logger, Config]:
     parser = argparse.ArgumentParser(description='Farm Esports Capsules by watching all matches on lolesports.com.')
