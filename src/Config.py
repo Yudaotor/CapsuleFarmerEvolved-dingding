@@ -19,7 +19,7 @@ class Config:
 
         :param configPath: string, path to the configuration file
         """
-        
+
         self.accounts = {}
         try:
             configPath = self.__findConfig(configPath)
@@ -29,11 +29,11 @@ class Config:
                 onlyDefaultUsername = True
                 for account in accs:
                     self.accounts[account] = {
-                        #Orig data
+                        # Orig data
                         "username": accs[account]["username"],
                         "password": accs[account]["password"],
-                        
-                        #IMAP data
+
+                        # IMAP data
                         "imapUsername": accs[account].get("imapUsername", ""),
                         "imapPassword": accs[account].get("imapPassword", ""),
                         "imapServer": accs[account].get("imapServer", ""),
@@ -41,29 +41,31 @@ class Config:
                     if "username" != accs[account]["username"]:
                         onlyDefaultUsername = False
                 if onlyDefaultUsername:
-                    raise InvalidCredentialsException                    
+                    raise InvalidCredentialsException
                 self.debug = config.get("debug", False)
                 self.connectorDrops = config.get("connectorDropsUrl", "")
                 self.showHistoricalDrops = config.get("showHistoricalDrops", True)
+                self.notifyError = config.get("notifyError", False)
         except FileNotFoundError as ex:
-            print(f"[red]CRITICAL ERROR: 配置文件 {configPath}找不到\n")
+            print(f"[red]严重错误: 配置文件 {configPath}找不到\n")
             print("Press any key to exit...")
             input()
             raise ex
         except (ParserError, KeyError) as ex:
-            print(f"[red]CRITICAL ERROR: 配置文件格式錯誤")
+            print(f"[red]严重错误: 配置文件格式錯誤")
             print("Press any key to exit...")
             input()
             raise ex
         except InvalidCredentialsException as ex:
-            print(f"[red]CRITICAL ERROR: 配置文件還為初始值.請輸入賬號信息")
+            print(f"[red]严重错误: 配置文件還為初始值.請輸入賬號信息")
             print("Press any key to exit...")
             input()
             raise ex
         try:
-            self.bestStreams = ['riotgames', 'lckcl', 'lpl', 'lck', 'lec', 'lcs', 'lco', 'cblol', 'lla', 'riotgamesjp', 'riotgamesturkish', 'lolpacific', 'EUMasters']
+            self.bestStreams = ['riotgames', 'lckcl', 'lpl', 'lck', 'lec', 'lcs', 'lco', 'cblol', 'lla', 'riotgamesjp',
+                                'riotgamesturkish', 'lolpacific', 'EUMasters']
         except Exception as ex:
-            print(f"[red]CRITICAL ERROR: 去挂梯,如果已經挂了那就是挂的姿勢不對或者梯子不行")
+            print(f"[red]严重错误: 去挂梯,如果已經挂了那就是挂的姿勢不對或者梯子不行")
             print("Press any key to exit...")
             input()
             raise ex
@@ -76,7 +78,7 @@ class Config:
         :return: dictionary, account information
         """
         return self.accounts[account]
-    
+
     def __findConfig(self, configPath):
         """
         Try to find configuartion file in alternative locations.
@@ -91,5 +93,5 @@ class Config:
             return Path("../config/config.yaml")
         if Path("config/config.yaml").exists():
             return Path("config/config.yaml")
-        
+
         return configPath

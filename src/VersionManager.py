@@ -1,5 +1,6 @@
 import requests as req
 
+
 class VersionManager:
 
     @staticmethod
@@ -12,7 +13,8 @@ class VersionManager:
                     return float(latestTagJson["tag_name"][1:])
             return 0.0
         except Exception:
-            print("查找是否版本是否为最新时发生错误")
+            print("When finding the latest version,something wrong!")
+
     @staticmethod
     def isLatestVersion(currentVersion):
         return currentVersion >= VersionManager.getLatestTag()

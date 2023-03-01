@@ -4,6 +4,7 @@ from rich.live import Live
 from rich.table import Table
 from rich.console import Console
 
+
 class GuiThread(Thread):
     """
     A thread that creates a capsule farm for a given account
@@ -22,24 +23,31 @@ class GuiThread(Thread):
         self.config = config
         self.stats = stats
         self.locks = locks
-    
+
     def generateTable(self):
         table = Table()
-        table.add_column("账户")
-        table.add_column("状态")
-        table.add_column("观看赛区")
-        table.add_column("心跳")
-        table.add_column("上次掉落")
-        table.add_column("本次运行掉落")
+        table.add_column("账户", justify="center")
+        table.add_column("状态", justify="center")
+        table.add_column("观看赛区", justify="center")
+        table.add_column("心跳", justify="center")
+        table.add_column("上次掉落", justify="center")
+        table.add_column("本次运行掉落", justify="center")
         if self.config.showHistoricalDrops:
-            table.add_column("生涯总掉落")
+            table.add_column("生涯总掉落", justify="center")
 
         for acc in self.stats.accountData:
             status = self.stats.accountData[acc]["status"]
             if self.config.showHistoricalDrops:
-                table.add_row(f"{acc}", f"{status}", f"{self.stats.accountData[acc]['liveMatches']}", f"{self.stats.accountData[acc]['lastCheck']}", f"{self.stats.accountData[acc]['lastDrop']}", f"{self.stats.accountData[acc]['sessionDrops']}", f"{self.stats.accountData[acc]['totalDrops']}")
+                table.add_row(f"{acc}", f"{status}", f"{self.stats.accountData[acc]['liveMatches']}",
+                              f"{self.stats.accountData[acc]['lastCheck']}",
+                              f"{self.stats.accountData[acc]['lastDrop']}",
+                              f"{self.stats.accountData[acc]['sessionDrops']}",
+                              f"{self.stats.accountData[acc]['totalDrops']}")
             else:
-                table.add_row(f"{acc}", f"{status}", f"{self.stats.accountData[acc]['liveMatches']}", f"{self.stats.accountData[acc]['lastCheck']}", f"{self.stats.accountData[acc]['lastDrop']}", f"{self.stats.accountData[acc]['sessionDrops']}")
+                table.add_row(f"{acc}", f"{status}", f"{self.stats.accountData[acc]['liveMatches']}",
+                              f"{self.stats.accountData[acc]['lastCheck']}",
+                              f"{self.stats.accountData[acc]['lastDrop']}",
+                              f"{self.stats.accountData[acc]['sessionDrops']}")
 
         return table
 
@@ -56,7 +64,7 @@ class GuiThread(Thread):
                 live.refresh()
                 if self.locks["refreshLock"].locked():
                     self.locks["refreshLock"].release()
-                
+
     def stop(self):
         """
         Try to stop gracefully

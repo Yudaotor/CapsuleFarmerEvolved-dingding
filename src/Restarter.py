@@ -30,7 +30,7 @@ class Restarter:
         elif failedLogins >= 6:
             delay = 1800
         self.startTimes[accountName] = datetime.now() + \
-            timedelta(seconds=delay)
+                                       timedelta(seconds=delay)
 
     def getNextStart(self, accountName: str) -> datetime:
         return self.startTimes[accountName]

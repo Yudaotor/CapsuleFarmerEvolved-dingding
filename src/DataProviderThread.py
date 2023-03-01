@@ -98,7 +98,7 @@ class DataProviderThread(Thread):
 
                         niceStartTime = datetime.strftime(startTime, '%H:%M')
                         self.sharedData.setTimeUntilNextMatch(
-                            f"Up next: {event['league']['name']} at {niceStartTime}")
+                            f"下一场将在: {event['league']['name']} 于 {niceStartTime}")
                         break
                     else:  # We're past the startTime due to delay or cancellation i'm guessing
                         continue  # Continue for loop to find next 'unstarted' event
@@ -147,4 +147,3 @@ class DataProviderThread(Thread):
         systemTimeStr = datetime.now().strftime(datetimeFormat)
         systemTimeDT = datetime.strptime(systemTimeStr, datetimeFormat)
         return systemTimeDT
-        

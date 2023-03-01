@@ -1,3 +1,4 @@
+import json
 import sys
 
 from AssertCondition import AssertCondition
@@ -18,7 +19,7 @@ from Exceptions.StatusCodeAssertException import StatusCodeAssertException
 import pickle
 from pathlib import Path
 import jwt
-from IMAP import IMAP # Added to automate 2FA
+from IMAP import IMAP  # Added to automate 2FA
 import imaplib2
 
 from SharedData import SharedData
@@ -52,7 +53,8 @@ class Browser:
         self.sharedData = sharedData
         self.ref = "Referer"
 
-    def login(self, username: str, password: str, imapusername: str, imappassword: str, imapserver: str, refreshLock) -> bool:
+    def login(self, username: str, password: str, imapusername: str, imappassword: str, imapserver: str,
+              refreshLock) -> bool:
         """
         Login to the website using given credentials. Obtain necessary tokens.
 
@@ -74,12 +76,12 @@ class Browser:
             if res.status_code == 429:
                 retryAfter = res.headers['Retry-after']
                 raise RateLimitException(retryAfter)
-            
+
             resJson = res.json()
             if "multifactor" in resJson.get("type", ""):
                 refreshLock.release()
-                if (imapserver != ""):
-                    #Handles all IMAP requests
+                if imapserver != "":
+                    # Handles all IMAP requests
                     req = self.IMAPHook(imapusername, imappassword, imapserver)
 
                     self.stats.updateStatus(self.account, f"[green]FETCHED 2FA CODE")
@@ -122,20 +124,27 @@ class Browser:
             self.client.post(
                 "https://login.leagueoflegends.com/sso/callback", data=data).close()
             self.client.get(
-                "https://auth.riotgames.com/authorize?client_id=esports-rna-prod&redirect_uri=https://account.rewards.lolesports.com/v1/session/oauth-callback&response_type=code&scope=openid&prompt=none&state=https://lolesports.com/?memento=na.en_GB", allow_redirects=True).close()
-                    
-            
-            resAccessToken = self.client.get("https://account.rewards.lolesports.com/v1/session/token", headers={"Origin": "https://lolesports.com", self.ref: "https://lolesports.com"})
+                "https://auth.riotgames.com/authorize?client_id=esports-rna-prod&redirect_uri=https://account.rewards"
+                ".lolesports.com/v1/session/oauth-callback&response_type=code&scope=openid&prompt=none&state=https"
+                "://lolesports.com/?memento=na.en_GB",
+                allow_redirects=True).close()
+
+            resAccessToken = self.client.get("https://account.rewards.lolesports.com/v1/session/token",
+                                             headers={"Origin": "https://lolesports.com",
+                                                      self.ref: "https://lolesports.com"})
 
             if resAccessToken.status_code != 200:
                 if self.ref == "Referer":
                     self.ref = "Referrer"
                 else:
                     self.ref = "Referer"
-                resAccessToken = self.client.get("https://account.rewards.lolesports.com/v1/session/token", headers={"Origin": "https://lolesports.com", self.ref: "https://lolesports.com"})
-            
+                resAccessToken = self.client.get("https://account.rewards.lolesports.com/v1/session/token",
+                                                 headers={"Origin": "https://lolesports.com",
+                                                          self.ref: "https://lolesports.com"})
+
             resPasToken = self.client.get(
-                "https://account.rewards.lolesports.com/v1/session/clientconfig/rms", headers={"Origin": "https://lolesports.com", self.ref: "https://lolesports.com"}).close()
+                "https://account.rewards.lolesports.com/v1/session/clientconfig/rms",
+                headers={"Origin": "https://lolesports.com", self.ref: "https://lolesports.com"}).close()
             if resAccessToken.status_code == 200:
                 self.__dumpCookies()
                 return True
@@ -194,11 +203,13 @@ class Browser:
                 watchFailed.append(self.sharedData.getLiveMatches()[tid].league)
         return watchFailed
 
-    def checkNewDrops(self, lastCheckTime = 0):
+    def checkNewDrops(self, lastCheckTime=0):
         try:
             headers = {"Origin": "https://lolesports.com",
-                   "Authorization": "Cookie access_token"}
-            res = self.client.get("https://account.service.lolesports.com/fandom-account/v1/earnedDrops?locale=en_GB&site=LOLESPORTS", headers=headers)
+                       "Authorization": "Cookie access_token"}
+            res = self.client.get(
+                "https://account.service.lolesports.com/fandom-account/v1/earnedDrops?locale=en_GB&site=LOLESPORTS",
+                headers=headers)
             resJson = res.json()
             res.close()
             return [drop for drop in resJson if lastCheckTime <= drop["unlockedDateMillis"]], len(resJson)
@@ -226,7 +237,7 @@ class Browser:
         """
         data = {"stream_id": match.streamChannel,
                 "source": match.streamSource,
-                "stream_position_time": datetime.utcnow().isoformat(sep='T', timespec='milliseconds')+'Z',
+                "stream_position_time": datetime.utcnow().isoformat(sep='T', timespec='milliseconds') + 'Z',
                 "geolocation": {"code": "CZ", "area": "EU"},
                 "tournament_id": match.tournamentId}
         headers = {"Origin": "https://lolesports.com"}
@@ -256,8 +267,13 @@ class Browser:
             pickle.dump(self.client.cookies, f)
 
     def __loadCookies(self):
-        if Path(f'./sessions/{self.account}.saved').exists():
-            with open(f'./sessions/{self.account}.saved', 'rb') as f:
-                self.client.cookies.update(pickle.load(f))
-                return True
-        return False
+        try:
+            if Path(f'./sessions/{self.account}.saved').exists():
+                with open(f'./sessions/{self.account}.saved', 'rb') as f:
+                    self.client.cookies.update(pickle.load(f))
+                    return True
+            else:
+                return False
+        except EOFError:
+            self.log.error("**********loadCookies EOFError happened!**********")
+            return False

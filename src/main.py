@@ -13,11 +13,12 @@ from pathlib import Path
 from time import sleep, strftime, localtime
 from Restarter import Restarter
 from SharedData import SharedData
-
+import requests
 from Stats import Stats
 from VersionManager import VersionManager
 
-CURRENT_VERSION = 1.43
+CURRENT_VERSION = 1.44
+
 
 def init() -> tuple[logging.Logger, Config]:
     parser = argparse.ArgumentParser(description='Farm Esports Capsules by watching all matches on lolesports.com.')
@@ -26,12 +27,16 @@ def init() -> tuple[logging.Logger, Config]:
     args = parser.parse_args()
 
     print("**********************************************************************************************")
-    print(f"*                         Thank you for using Capsule Farmer Evolved v{str(CURRENT_VERSION)}!                  *")
+    print(
+        f"*                         Thank you for using Capsule Farmer Evolved v{str(CURRENT_VERSION)}!                  *")
+    print("*                        以下为本改版的github链接(非原版),供源码和下载方式.                  *")
+    print("*                   https://github.com/Yudaotor/CapsuleFarmerEvolved-dingding                *")
     print("*                        如果不能正常使用的话,本软件需要梯子 (注意不是加速器)                *")
     print("*   如出现登陆失败的情况,1.检查账密是否正确 2.删除sessions文件夹后重试 3.网络问题(梯子问题)  *")
     print("*                     关于如何使用钉钉提醒(饭碗警告软件)功能请查看以下链接                   *")
     print("*     https://blog.csdn.net/qq_33884853/article/details/129104726?spm=1001.2014.3001.5502    *")
-    print(f"*                                     Start Time: [green]{strftime('%b %d, %H:%M', localtime())}[/]                              *")
+    print(
+        f"*                                     Start Time: [green]{strftime('%b %d, %H:%M', localtime())}[/]                              *")
     print("**********************************************************************************************")
     print()
 
@@ -40,10 +45,14 @@ def init() -> tuple[logging.Logger, Config]:
     config = Config(args.configPath)
     log = Logger.createLogger(config.debug, CURRENT_VERSION)
     if not VersionManager.isLatestVersion(CURRENT_VERSION):
-        log.warning("!!! 新版本可用 !!! 从github这下载: https://github.com/Yudaotor/CapsuleFarmerEvolved-dingding/releases/latest")
-        print("[bold red]!!! 新版本可用 !!!\n从github这下载: https://github.com/Yudaotor/CapsuleFarmerEvolved-dingding/releases/latest\n")
+        log.warning(
+            "!!! 新版本可用 !!! 从github这下载: https://github.com/Yudaotor/CapsuleFarmerEvolved-dingding/releases/latest")
+        print(
+            "[bold red]!!! 新版本可用 !!!\n从github这下载: https://github.com/Yudaotor/CapsuleFarmerEvolved-dingding/releases"
+            "/latest\n")
 
     return log, config
+
 
 def main(log: logging.Logger, config: Config):
     farmThreads = {}
@@ -81,26 +90,39 @@ def main(log: logging.Logger, config: Config):
                 del farmThreads[account]
 
         toDelete = []
-        
+
         for account in farmThreads:
             if not farmThreads[account].is_alive():
                 toDelete.append(account)
                 log.warning(f"Thread {account} has finished.")
                 restarter.setRestartDelay(account)
-                stats.updateStatus(account, f"[red]错误:将在 {restarter.getNextStart(account).strftime('%H:%M:%S')}之后重启, 登陆失败次数: {stats.getFailedLogins(account)}")
-                log.warning(f"Thread {account} has finished and will restart at {restarter.getNextStart(account).strftime('%H:%M:%S')}. Number of consecutively failed logins: {stats.getFailedLogins(account)}")
-                
+                stats.updateStatus(account,
+                                   f"[red]错误:将在 {restarter.getNextStart(account).strftime('%H:%M:%S')}之后重启, 登陆失败次数: {stats.getFailedLogins(account)}")
+                if stats.getFailedLogins(account) >= 5:
+                    if config.notifyError:
+                        params = {
+                            "text": f"注意哦,账号:{account}掉线啦",
+                        }
+                        requests.post(config.connectorDrops,
+                                      headers={"Content-type": "application/json"},
+                                      json=params)
+                    log.exception(f"Error in {account}. The program will try to recover.")
+                log.warning(
+                    f"Thread {account} has finished and will restart at {restarter.getNextStart(account).strftime('%H:%M:%S')}. Number of consecutively failed logins: {stats.getFailedLogins(account)}")
+
         for account in toDelete:
             del farmThreads[account]
 
         sleep(5)
+
+
 if __name__ == '__main__':
     log = None
     try:
         log, config = init()
         main(log, config)
     except (KeyboardInterrupt, SystemExit):
-        print('Exiting. Thank you for farming with us!')
+        print('退出成功,欢迎使用本软件!')
         sys.exit()
     except CapsuleFarmerEvolvedException as e:
         if isinstance(log, logging.Logger):

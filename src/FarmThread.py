@@ -9,6 +9,7 @@ import requests
 
 from SharedData import SharedData
 
+
 class FarmThread(Thread):
     """
     A thread that creates a capsule farm for a given account
@@ -39,9 +40,13 @@ class FarmThread(Thread):
         try:
             self.stats.updateStatus(self.account, "[yellow]登陆中")
 
-            if self.browser.login(self.config.getAccount(self.account)["username"], self.config.getAccount(self.account)["password"], self.config.getAccount(self.account)["imapUsername"], self.config.getAccount(self.account)["imapPassword"], self.config.getAccount(self.account)["imapServer"], self.locks["refreshLock"]):
+            if self.browser.login(self.config.getAccount(self.account)["username"],
+                                  self.config.getAccount(self.account)["password"],
+                                  self.config.getAccount(self.account)["imapUsername"],
+                                  self.config.getAccount(self.account)["imapPassword"],
+                                  self.config.getAccount(self.account)["imapServer"], self.locks["refreshLock"]):
                 self.stats.resetLoginFailed(self.account)
-                self.stats.updateStatus(self.account, "[green]LIVE")
+                self.stats.updateStatus(self.account, "[green]运行中")
                 _, totalDrops = self.browser.checkNewDrops(0)
                 self.stats.setTotalDrops(self.account, totalDrops)
                 while True:
@@ -54,7 +59,7 @@ class FarmThread(Thread):
                             if m.league in watchFailed:
                                 self.stats.updateStatus(self.account, "[red]拳头服务器过载-请等待")
                             else:
-                                self.stats.updateStatus(self.account, "[green]LIVE")
+                                self.stats.updateStatus(self.account, "[green]运行中")
                             liveMatchesStatus.append(m.league)
                         self.log.debug(f"Live matches: {', '.join(liveMatchesStatus)}")
                         liveMatchesMsg = f"{', '.join(liveMatchesStatus)}"
@@ -64,8 +69,14 @@ class FarmThread(Thread):
                     else:
                         liveMatchesMsg = self.sharedData.getTimeUntilNextMatch()
                     try:
-                        if newDrops and getLeagueFromID(newDrops[-1]["leagueID"]):
-                            self.stats.update(self.account, len(newDrops), liveMatchesMsg, getLeagueFromID(newDrops[-1]["leagueID"]))
+                        if newDrops and getLeagueFromID(newDrops[-1]["leagueID"]) and \
+                                newDrops[-1]["inventory"][0]["localizedInventory"]["title"]["en_US"]:
+                            self.stats.update(self.account, len(newDrops), liveMatchesMsg,
+                                              getLeagueFromID(newDrops[-1]["leagueID"]),
+                                              newDrops[-1]["inventory"][0]["localizedInventory"]["title"]["en_US"])
+                        elif getLeagueFromID(newDrops[-1]["leagueID"]):
+                            self.stats.update(self.account, 0, liveMatchesMsg,
+                                              getLeagueFromID(newDrops[-1]["leagueID"]))
                         else:
                             self.stats.update(self.account, 0, liveMatchesMsg)
                     except (IndexError, KeyError):
@@ -105,9 +116,11 @@ class FarmThread(Thread):
                             data = {
                                 "msgtype": "link",
                                 "link": {
-                                    "text": datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "Received a Capsule From " + leagueId,
+                                    "text": datetime.now().strftime(
+                                        "%Y-%m-%d %H:%M:%S") + "Received a Capsule From " + leagueId,
                                     "title": f"[{self.account}] {title1}",
-                                    "picUrl": newDrops[x]["inventory"][0]["localizedInventory"]["inventory"]["imageUrl"],
+                                    "picUrl": newDrops[x]["inventory"][0]["localizedInventory"]["inventory"][
+                                        "imageUrl"],
                                     "messageUrl": "https://lolesports.com/rewards"
                                 }
                             }
@@ -140,7 +153,10 @@ class FarmThread(Thread):
                             title1 = newDrops[x]["dropsetTitle"]
                             title = f"[{self.account}] {title1}"
                             leagueId = getLeagueFromID(newDrops[x]["leagueID"])
-                            text = title + " " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " Received a Capsule From " + leagueId
+                            text = title + " " + datetime.now().strftime(
+                                "%Y-%m-%d %H:%M:%S") + " Received a" + \
+                                   newDrops[x]["inventory"][0]["localizedInventory"]["title"][
+                                       "en_US"] + " From " + leagueId
                             params = {
                                 "text": f"{text}",
                             }
@@ -151,7 +167,7 @@ class FarmThread(Thread):
                     requests.post(self.config.connectorDrops, json=newDrops)
         except Exception:
             self.log.exception("*****************************************************************")
-            self.log.exception("Wrong!!!!!!!!")
+            self.log.exception("Notify Wrong!!!!!!!!")
             self.log.exception("*****************************************************************")
 
 

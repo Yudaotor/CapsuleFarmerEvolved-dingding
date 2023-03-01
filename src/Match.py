@@ -1,6 +1,5 @@
 import string
 
-
 from dataclasses import dataclass
 
 
