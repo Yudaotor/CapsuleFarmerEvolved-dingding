@@ -101,7 +101,7 @@ def main(log: logging.Logger, config: Config):
                 if stats.getFailedLogins(account) >= 5:
                     if config.notifyError:
                         params = {
-                            "text": f"注意哦,账号:{account}掉线啦",
+                            "text": f"注意哦,账号:{account}停止获取Capsule,掉线啦",
                         }
                         requests.post(config.connectorDrops,
                                       headers={"Content-type": "application/json"},
